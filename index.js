@@ -22,6 +22,8 @@ app.use(require('cors')());
 
 // Routing
 app.use('/user', require('./src/routes/user'));
+app.use('/event', require('./src/routes/event'));
+app.use('/invite', require('./src/routes/invite'));
 
 // Serving
 app.listen(9000, () => {

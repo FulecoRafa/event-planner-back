@@ -7,7 +7,7 @@ module.exports = {
       type: 'err',
       text: 'There is already an event at this period'
     })
-    Event.create(req.body)
+    Event.create({...req.body, users: [req.user._id]})
       .then(data => {
         res.status(201).send({
           type: 'message',
@@ -23,7 +23,7 @@ module.exports = {
       });
   },
   remove(req, res, next){
-    Event.findByIdAndDelete(req.body._id)
+    Event.findByIdAndDelete(req.params.id)
       .then(data => {
         res.status(200).send({
           type: 'message',
@@ -39,7 +39,7 @@ module.exports = {
       });
   },
   getByUser(req, res, next){
-    Event.find({users: req._id})
+    Event.find({users: req.user._id})
       .then(data => {
         res.status(200).send({
           type: 'data',
@@ -59,7 +59,7 @@ module.exports = {
       type: 'err',
       text: 'There is already an event at this period'
     });
-    Event.findByIdAndUpdate(req.body._id, req.body)
+    Event.findByIdAndUpdate(req.params.id, req.body)
       .then(data => {
         res.status(200).send({
           type: 'message',
@@ -75,9 +75,9 @@ module.exports = {
       })
   },
   addUser(req, res, next){
-    Event.findById(req.body._id)
+    Event.findById(req.params.id)
       .then(event => {
-        event.users = [...event.users, req.body.user];
+        event.users = [...event.users, req.user._id];
         event.save()
           .then(data => {
             next();

@@ -48,6 +48,20 @@ module.exports = {
       auth: req.jwkeysAuth,
     });
   },
+  getById(req, res, next){
+    User.findById(req.params.id)
+      .then(data => {
+        res.found = data;
+        return next();
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(400).send({
+          type: 'err',
+          text: 'Could not find user specified'
+        });
+      });
+  },
 
   checkPermission(req,res,next){
     res.status(200).send({
