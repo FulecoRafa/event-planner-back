@@ -36,11 +36,11 @@ module.exports = {
       });
   },
   remove(req, res, next){
-    Invite.findByIdAndDelete(req.params.id)
+    Invite.findByIdAndDelete(req.params.inviteId)
       .then(data => {
         res.status(200).send({
           type: 'message',
-          text: req.message
+          text: req.message || "Invite declined successfully"
         });
       })
       .catch(err => {

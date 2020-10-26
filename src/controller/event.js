@@ -77,9 +77,14 @@ module.exports = {
   addUser(req, res, next){
     Event.findById(req.params.id)
       .then(event => {
-        event.users = [...event.users, req.user._id];
+        req.message = "You were already part of this event"
+        if(!event.users.includes(req.user._id)){
+          event.users = [...event.users, req.user._id];
+          req.message = "Invite accepted"
+        }
         event.save()
           .then(data => {
+
             next();
           })
           .catch(err => {

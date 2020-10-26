@@ -48,10 +48,10 @@ module.exports = {
       auth: req.jwkeysAuth,
     });
   },
-  getById(req, res, next){
-    User.findById(req.params.id)
+  getByUsername(req, res, next){
+    User.findOne({username: req.body.username})
       .then(data => {
-        res.found = data;
+        req.found = data;
         return next();
       })
       .catch(err => {
