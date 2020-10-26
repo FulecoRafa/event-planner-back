@@ -6,7 +6,7 @@ module.exports = {
     if(req.hasEvent) return res.status(402).send({
       type: 'err',
       text: 'There is already an event at this period'
-    })
+    });
     Event.create({...req.body, users: [req.user._id]})
       .then(data => {
         res.status(201).send({
@@ -55,7 +55,7 @@ module.exports = {
       })
   },
   update(req, res, next){
-    if(req.hasEvent) res.status(402).send({
+    if(req.hasEvent) return res.status(402).send({
       type: 'err',
       text: 'There is already an event at this period'
     });
@@ -77,23 +77,51 @@ module.exports = {
   addUser(req, res, next){
     Event.findById(req.params.id)
       .then(event => {
-        req.message = "You were already part of this event"
-        if(!event.users.includes(req.user._id)){
-          event.users = [...event.users, req.user._id];
-          req.message = "Invite accepted"
-        }
-        event.save()
+        Event.find({
+          $or: [
+            {
+              $and: [
+                {startStamp: {$lte: event.startStamp}},
+                {endStamp: {$gt: event.startStamp}}
+              ]
+            },
+            {
+              $and: [
+                {startStamp: {$lte: event.endStamp}},
+                {endStamp: {$gt: event.endStamp}}
+              ]
+            }
+          ],
+          users: req.user._id,
+          _id: {$ne: req.params.id}
+        })
           .then(data => {
-
-            next();
+            if(data.length <= 0) {
+              req.message = "You were already part of this event"
+              console.log(event.users, req.user._id)
+              if(!event.users.includes(req.user._id)){
+                event.users = [...event.users, req.user._id];
+                req.message = "Invite accepted"
+              }
+              event.save()
+                .then(data => {
+      
+                  next();
+                })
+                .catch(err => {
+                  console.log(err);
+                  res.status(400).send({
+                    type: 'err',
+                    text: 'There was an error updating event'
+                  });
+                });
+            }else{
+              res.status(402).send({
+                type: 'err',
+                text: 'There is already an event at this period'
+              });
+            }
           })
-          .catch(err => {
-            console.log(err);
-            res.status(400).send({
-              type: 'err',
-              text: 'There was an error updating event'
-            });
-          });
       })
       .catch(err => {
         console.log(err);
@@ -109,21 +137,23 @@ module.exports = {
         {
           $and: [
             {startStamp: {$lte: req.body.startStamp}},
-            {endStamp: {$gte: req.body.startStamp}}
+            {endStamp: {$gt: req.body.startStamp}}
           ]
         },
         {
           $and: [
             {startStamp: {$lte: req.body.endStamp}},
-            {endStamp: {$gte: req.body.endStamp}}
+            {endStamp: {$gt: req.body.endStamp}}
           ]
         }
-      ]
+      ],
+      users: req.user._id,
+      _id: {$ne: req.params.id}
     })
       .then(data => {
-        if(data.length) req.hasEvent = true
+        if(data.length > 0) req.hasEvent = true
         else req.hasEvent = false
+        next()
       })
-    next()
   }
 }
