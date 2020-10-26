@@ -51,6 +51,7 @@ module.exports = {
   getByUsername(req, res, next){
     User.findOne({username: req.body.username})
       .then(data => {
+        if(!data) throw 'Could not find specified user';
         req.found = data;
         return next();
       })

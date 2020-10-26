@@ -21,6 +21,7 @@ module.exports = {
   getByUser(req, res, next){
     Invite.find({receiver: req.user._id})
       .populate('sender')
+      .populate('event')
       .then(data => {
         res.status(200).send({
           type: 'data',

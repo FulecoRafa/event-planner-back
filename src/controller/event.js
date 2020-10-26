@@ -39,7 +39,7 @@ module.exports = {
       });
   },
   getByUser(req, res, next){
-    Event.find({users: req.user._id})
+    Event.find({users: req.user._id}, 'name startStamp endStamp color')
       .then(data => {
         res.status(200).send({
           type: 'data',
@@ -136,13 +136,13 @@ module.exports = {
       $or: [
         {
           $and: [
-            {startStamp: {$lte: req.body.startStamp}},
+            {startStamp: {$lt: req.body.startStamp}},
             {endStamp: {$gt: req.body.startStamp}}
           ]
         },
         {
           $and: [
-            {startStamp: {$lte: req.body.endStamp}},
+            {startStamp: {$lt: req.body.endStamp}},
             {endStamp: {$gt: req.body.endStamp}}
           ]
         }
@@ -151,6 +151,7 @@ module.exports = {
       _id: {$ne: req.params.id}
     })
       .then(data => {
+        console.log(data)
         if(data.length > 0) req.hasEvent = true
         else req.hasEvent = false
         next()

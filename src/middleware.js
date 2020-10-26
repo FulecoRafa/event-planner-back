@@ -10,19 +10,28 @@ const expireTime = '30m';
 module.exports = {
   // Put before actual login to create tokens
   createTokens(req, res, next){
-    if(req.user == null) res.status(401).send("Please inform user information for login");
+    if(req.user == null) res.status(401).send({
+      type: 'err',
+      text: "Please inform user information for login"
+    });
     req.jwkeysAuth = jwt.sign(req.user, process.env.JSON_SHUSH, {expiresIn: expireTime});
     return next();
   },
   // Verifies auth token and autorefreshes token if expired
   authToken(req, res, next){
     const authToken = req.headers['auth'];
-    if(authToken == null) return res.status(401).send("No auth token, please login.");
+    if(authToken == null) return res.status(401).send({
+      type: 'err',
+      text:"No auth token, please login."
+    });
 
     jwt.verify(authToken, process.env.JSON_SHUSH, async (error, decoded)=>{
       if(error){
         console.log(error, Date.now());
-        return res.status(403).send("Not authorized, please login");
+        return res.status(403).send({
+          type: 'err',
+          text: "Not authorized, please login"
+        });
       }else{
         req.user = decoded;
         return next();
